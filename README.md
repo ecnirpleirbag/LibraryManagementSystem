@@ -21,6 +21,192 @@ A comprehensive Java-based Library Management System built with modern software 
 
 ## 🏗️ Architecture
 
+### Class Diagram
+```mermaid
+classDiagram
+    %% Core Models
+    class Book {
+        -int id
+        -String isbn
+        -String title
+        -String author
+        -int publicationYear
+        -BookStatus status
+        +Book(String, String, String, int)
+        +getId() int
+        +getIsbn() String
+        +getTitle() String
+        +setTitle(String) void
+        +getAuthor() String
+        +setAuthor(String) void
+        +getPublicationYear() int
+        +setPublicationYear(int) void
+        +getStatus() BookStatus
+        +setStatus(BookStatus) void
+        +equals(Object) boolean
+        +hashCode() int
+        +toString() String
+    }
+
+    class BookStatus {
+        <<enumeration>>
+        AVAILABLE
+        BORROWED
+        RESERVED
+        LOST
+    }
+
+    class Patron {
+        -int id
+        -String name
+        -String email
+        -List~BorrowRecord~ borrowHistory
+        -Set~String~ currentBorrowedIsbns
+        +Patron(String, String)
+        +getId() int
+        +getName() String
+        +setName(String) void
+        +getEmail() String
+        +setEmail(String) void
+        +addBorrowRecord(String) void
+        +returnBorrowedBook(String) void
+        +getBorrowHistory() List~BorrowRecord~
+        +getCurrentBorrowedIsbns() Set~String~
+        +toString() String
+    }
+
+    class BorrowRecord {
+        -String isbn
+        -LocalDateTime borrowedAt
+        -LocalDateTime returnAt
+        +BorrowRecord(String, LocalDateTime, LocalDateTime)
+        +getIsbn() String
+        +getBorrowedAt() LocalDateTime
+        +getReturnAt() LocalDateTime
+        +setReturnAt(LocalDateTime) void
+        +toString() String
+    }
+
+    %% Factory Pattern
+    class BookFactory {
+        <<utility>>
+        -BookFactory()
+        +create(String, String, String, int) Book
+    }
+
+    class PatronFactory {
+        <<utility>>
+        -PatronFactory()
+        +create(String, String) Patron
+    }
+
+    %% Strategy Pattern
+    class SearchStrategy {
+        <<interface>>
+        +search(List~Book~, String) List~Book~
+    }
+
+    class TitleSearchStrategy {
+        +search(List~Book~, String) List~Book~
+    }
+
+    class AuthorSearchStrategy {
+        +search(List~Book~, String) List~Book~
+    }
+
+    class IsbnSearchStrategy {
+        +search(List~Book~, String) List~Book~
+    }
+
+    %% Observer Pattern
+    class ReservationListener {
+        <<interface>>
+        +onBookAvailable(Book, Patron) void
+    }
+
+    class ReservationManager {
+        -Map~String, Deque~Patron~~ reservationQueues
+        -List~ReservationListener~ listeners
+        +reserve(String, Patron) void
+        +pollNextPatron(String) Optional~Patron~
+        +hasReservations(String) boolean
+        +addListener(ReservationListener) void
+        +removeListener(ReservationListener) void
+        +notifyBookAvailable(Book, Patron) void
+    }
+
+    %% Core System
+    class Library {
+        -ReservationManager reservationManager
+        -LibraryInventory inventory
+        -Map~Integer, Patron~ patrons
+        -RecommendationEngine recommendEngine
+        -List~SearchStrategy~ searchStrategies
+        +Library()
+        +addPatron(String, String) Patron
+        +getPatron(int) Optional~Patron~
+        +updatePatron(int, String, String) void
+        +listPatrons() Collection~Patron~
+        +addBook(String, String, String, int, int) void
+        +removeBook(String, int) void
+        +updateBook(String, String, String, int) void
+        +searchTitle(String) List~Book~
+        +searchAuthor(String) List~Book~
+        +searchIsbn(String) List~Book~
+        +searchGeneric(String, String) List~Book~
+        +checkout(String, int) boolean
+        +returnBook(String, int) boolean
+        +reserve(String, int) void
+        +recommendForPatron(int, int) List~Book~
+        +onBookAvailable(Book, Patron) void
+    }
+
+    class LibraryInventory {
+        -Map~String, Book~ isbnBookMap
+        -Map~String, Integer~ availableCount
+        -Map~String, Integer~ borrowedCount
+        -ReservationManager reservationManager
+        +LibraryInventory(ReservationManager)
+        +addBook(Book, int) void
+        +removeBook(String, int) void
+        +updateBookInfo(String, String, String, int) void
+        +getBookByIsbn(String) Optional~Book~
+        +getAllBooks() Collection~Book~
+        +getAvailableCopies(String) int
+        +isAvailable(String) boolean
+        +checkoutBook(String, Patron) boolean
+        +returnBook(String, Patron) boolean
+    }
+
+    class RecommendationEngine {
+        +recommend(Patron, Collection~Book~, int) List~Book~
+    }
+
+    class Main {
+        +main(String[]) void
+    }
+
+    %% Relationships
+    Book ||--|| BookStatus : has
+    Patron ||--o{ BorrowRecord : contains
+    BookFactory ..> Book : creates
+    PatronFactory ..> Patron : creates
+    SearchStrategy <|.. TitleSearchStrategy : implements
+    SearchStrategy <|.. AuthorSearchStrategy : implements
+    SearchStrategy <|.. IsbnSearchStrategy : implements
+    ReservationListener <|.. Library : implements
+    Library ||--o{ ReservationManager : uses
+    Library ||--o{ LibraryInventory : uses
+    Library ||--o{ RecommendationEngine : uses
+    Library ||--o{ SearchStrategy : uses
+    Library ||--o{ Patron : manages
+    LibraryInventory ||--o{ ReservationManager : uses
+    LibraryInventory ||--o{ Book : manages
+    RecommendationEngine ..> Patron : uses
+    RecommendationEngine ..> Book : uses
+    Main ..> Library : uses
+```
+
 ### Design Patterns Implemented
 - **Factory Pattern**: `BookFactory` and `PatronFactory` for object creation
 - **Strategy Pattern**: `SearchStrategy` implementations for different search types
