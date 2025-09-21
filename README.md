@@ -366,6 +366,10 @@ This project is open source and available under the [MIT License](LICENSE).
 - GitHub: [@ecnirpleirbag](https://github.com/ecnirpleirbag)
 - Email: gabrielprince2k@gmail.com
 
+## 📝 Assignment Submission
+
+This repository contains the complete implementation of a Library Management System for the Java OOP assignment, demonstrating design patterns, SOLID principles, and comprehensive functionality.
+
 ## 🙏 Acknowledgments
 
 - Design patterns implementation inspired by Gang of Four
